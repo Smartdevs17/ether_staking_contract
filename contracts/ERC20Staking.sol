@@ -13,7 +13,6 @@ contract ERC20Staking {
     mapping(address => StakingInfo) public stakingInfo;
     IERC20 public token;
     address private owner;
-    uint256 public rewardBalance = token.balanceOf(owner);
 
     event StakingStarted(address indexed user, uint256 amount, uint256 stakingTime);
     event RewardsWithdrawn(address indexed user, uint256 amount, uint256 withdrawnTime);
@@ -24,12 +23,13 @@ contract ERC20Staking {
     }
 
     function stakeToken(uint256 _stakingTime, uint256 _amount) public {
+        uint256 rewardBalance = token.balanceOf(address(this));
         require(msg.sender != address(0), "Cannot stake from address 0");
         require(_stakingTime > 0, "Staking time must be greater than zero");
+        require(_amount > 0, "Amount must be greater than zero");
         uint256 reward = calculateReward(_stakingTime, _amount);
         require(rewardBalance >= reward, "Insufficient reward balance");
         rewardBalance -= reward;
-        require(_amount > 0, "Amount must be greater than zero");
         require(_amount <= token.balanceOf(msg.sender), "Amount cannot be greater than the user's balance");
         token.transferFrom(msg.sender, address(this), _amount);
         stakingInfo[msg.sender] = StakingInfo(_amount, block.timestamp + _stakingTime, reward);
