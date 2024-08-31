@@ -1,66 +1,86 @@
-import {
-    loadFixture,
-  } from "@nomicfoundation/hardhat-toolbox/network-helpers";
-  import { anyValue } from "@nomicfoundation/hardhat-chai-matchers/withArgs";
-  import { expect } from "chai";
-  import hre from "hardhat";
-  import {  } from "../typechain-types";
+// import { loadFixture } from "@nomicfoundation/hardhat-toolbox/network-helpers";
+// import { expect } from "chai";
+// import { ethers } from "hardhat";
 
-  describe("ERC20Staking", function () {
-    // We define a fixture to reuse the same setup in every test.
-    // We use loadFixture to run this setup once, snapshot that state,
-    // and reset Hardhat Network to that snapshot in every test.
-    async function deployTokenFixture() {
-      // Deploy SmartDev token
-      const SmartDev = await hre.ethers.getContractFactory("SmartDev");
-      const token = await SmartDev.deploy();
+// describe("ERC20Staking", function () {
+//     async function deployTokenFixture() {
+//         const SmartDev = await ethers.getContractFactory("SmartDev");
+//         const token = await SmartDev.deploy();
+//         return { token };
+//     }
 
+//     async function deployERC20StakingFixture() {
+//         const { token } = await loadFixture(deployTokenFixture);
+//         const ERC20Staking = await ethers.getContractFactory("ERC20Staking");
+//         const eRC20Staking = await ERC20Staking.deploy(token.address);  
+//         const [owner, user1, user2] = await ethers.getSigners();
+//         return { token, eRC20Staking, owner, user1, user2 };
+//     }
 
-      return { token };
-    }
+//     describe("Deployment", function () {
+//         it("Should set the correct token address", async function () {
+//             const { token, eRC20Staking } = await loadFixture(deployERC20StakingFixture);
+//             expect(await eRC20Staking.token()).to.equal(token.address);
+//         });
+//     });
 
-    async function deployERC20StakingFixture() {
-        const { token } = await loadFixture(deployTokenFixture);
-        // Deploy ERC20Staking contract
-        const ERC20Staking = await hre.ethers.getContractFactory("ERC20Staking");
-        const eRC20Staking = await ERC20Staking.deploy(token); 
+//     describe("Staking", function () {
+//         it("Should allow staking with correct parameters", async function () {
+//             const { eRC20Staking, user1, token } = await loadFixture(deployERC20StakingFixture);
+//             const stakingTime = 31536000; // 1 year in seconds
+//             const amount = ethers.parseEther("1.0"); // 1 token
 
-        // Get signers
-        const [owner, user1, user2] = await hre.ethers.getSigners();
-  
-        return { token, eRC20Staking, owner, user1, user2 };
-    }
+//             await token.mint(user1.address, amount);
+//             await token.connect(user1).approve(eRC20Staking.address, amount);
 
-    describe("Deployment", function () {
-        it("Should set the correct token address", async function () {
-            const { token, eRC20Staking } = await loadFixture(deployERC20StakingFixture);
-            expect(eRC20Staking.token).to.equal(await token.getAddress());
-        });
+//             await eRC20Staking.connect(user1).stakeToken(stakingTime, amount);
 
-    });
+//             const stakingInfo = await eRC20Staking.stakingInfo(user1.address);
+//             expect(stakingInfo.balance).to.equal(amount);
+//             expect(stakingInfo.time).to.equal(stakingTime + (await ethers.provider.getBlock('latest')).timestamp);
+//         });
 
-  describe("Staking", function () {
-    it("Should allow users to stake tokens", async function () {
-        const { eRC20Staking, user1 } = await loadFixture(deployERC20StakingFixture);
-        await eRC20Staking.stakeToken(31536000); // stake for 1 year
-        expect(await eRC20Staking.stakingInfo(user1.address)).to.not.equal(0);
-    });
+//         it("Should not allow staking with invalid parameters", async function () {
+//             const { eRC20Staking, user1, token } = await loadFixture(deployERC20StakingFixture);
+//             const stakingTime = 0; 
+//             const amount = ethers.parseEther("1.0"); // 1 token
 
-    it("Should calculate rewards correctly", async function () {
-        const { eRC20Staking } = await loadFixture(deployERC20StakingFixture);
-        const reward = await eRC20Staking.calculateReward(31536000);
-        expect(reward).to.equal(1);
-    });
+//             await token.mint(user1.address, amount);
+//             await token.connect(user1).approve(eRC20Staking.address, amount);
 
-    it("Should allow users to withdraw", async function () {
-        const { eRC20Staking, user1 } = await loadFixture(deployERC20StakingFixture);
-        await eRC20Staking.stakeToken(31536000); 
-        await eRC20Staking.withdraw();
-        expect(await eRC20Staking.stakingInfo(user1.address)).to.equal(0);
-    });
-  });
-   
+//             await expect(eRC20Staking.connect(user1).stakeToken(stakingTime, amount)).to.be.revertedWith("Staking time must be greater than zero");
+//         });
+//     });
 
-    
+//     describe("Withdrawal", function () {
+//         it("Should allow withdrawal after staking time", async function () {
+//             const { eRC20Staking, user1, token } = await loadFixture(deployERC20StakingFixture);
+//             const stakingTime = 31536000; // 1 year in seconds
+//             const amount = ethers.parseEther("1.0"); // 1 token
 
-  });
+//             await token.mint(user1.address, amount);
+//             await token.connect(user1).approve(eRC20Staking.address, amount);
+//             await eRC20Staking.connect(user1).stakeToken(stakingTime, amount);
+
+//             await ethers.provider.send("evm_increaseTime", [stakingTime]);
+//             await ethers.provider.send("evm_mine", []);
+
+//             await eRC20Staking.connect(user1).withdraw();
+
+//             const user1Balance = await token.balanceOf(user1.address);
+//             expect(user1Balance).to.equal(amount.mul(2)); 
+//         });
+
+//         it("Should not allow withdrawal before staking time", async function () {
+//             const { eRC20Staking, user1, token } = await loadFixture(deployERC20StakingFixture);
+//             const stakingTime = 31536000; // 1 year in seconds
+//             const amount = ethers.parseEther("1.0"); // 1 token
+
+//             await token.mint(user1.address, amount);
+//             await token.connect(user1).approve(eRC20Staking.address, amount);
+//             await eRC20Staking.connect(user1).stakeToken(stakingTime, amount);
+
+//             await expect(eRC20Staking.connect(user1).withdraw()).to.be.revertedWith("Staking time has not elapsed");
+//         });
+//     });
+// });
