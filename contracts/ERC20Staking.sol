@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "hardhat/console.sol";
 
 contract ERC20Staking {
     struct StakingInfo {
@@ -27,6 +28,11 @@ contract ERC20Staking {
         require(_stakingTime > 0, "Staking time must be greater than zero");
         require(_amount > 0, "Amount must be greater than zero");
         uint256 reward = calculateReward(_stakingTime, _amount);
+        // Log the current reward balance and the reward amount
+        // console.log("Current reward balance:", rewardBalance);
+        // console.log("Reward amount:", reward);
+        // console.log("Staking amount:", _amount);
+
         require(rewardBalance >= reward, "Insufficient reward balance");
         rewardBalance -= reward;
         require(_amount <= token.balanceOf(msg.sender), "Amount cannot be greater than the user's balance");
@@ -38,7 +44,7 @@ contract ERC20Staking {
 
     function calculateReward(uint256 _stakingTime, uint256 _amount) public pure returns (uint256) {
         uint256 secondsInAYear = 31536000; 
-        uint256 reward = _amount * _stakingTime * 1e18 / secondsInAYear;
+        uint256 reward = _amount * _stakingTime / secondsInAYear;
         return reward;
     }
 
