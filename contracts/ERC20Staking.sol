@@ -36,7 +36,7 @@ contract ERC20Staking {
         emit StakingStarted(msg.sender, amount, _stakingTime);
     }
 
-    function calculateReward(uint256 _stakingTime) private pure returns (uint256) {
+    function calculateReward(uint256 _stakingTime) public pure returns (uint256) {
         uint256 secondsInAYear = 31536000; 
         uint256 reward = _stakingTime / secondsInAYear;
         return reward;
@@ -54,14 +54,3 @@ contract ERC20Staking {
         emit RewardsWithdrawn(msg.sender, totalAmount, block.timestamp);
     }
 }
-
-// ERC20 Staking Smart Contract
-
-// Objective: Write an ERC20 staking smart contract that allows users to stake a specific ERC20 token for rewards.
-
-// Requirements:
-// Users should be able to stake the ERC20 token by transferring the tokens to the contract.
-// The contract should track the amount and duration of each user’s stake.
-// Implement a reward mechanism similar to the Ether staking contract, where rewards are based on the staking duration.
-// Users should be able to withdraw their staked tokens and the rewards after the staking period.
-// The contract should handle ERC20 token transfers securely and efficiently.

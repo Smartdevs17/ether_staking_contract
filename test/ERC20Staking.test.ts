@@ -39,6 +39,26 @@ import {
 
     });
 
+  describe("Staking", function () {
+    it("Should allow users to stake tokens", async function () {
+        const { eRC20Staking, user1 } = await loadFixture(deployERC20StakingFixture);
+        await eRC20Staking.stakeToken(31536000); // stake for 1 year
+        expect(await eRC20Staking.stakingInfo(user1.address)).to.not.equal(0);
+    });
+
+    it("Should calculate rewards correctly", async function () {
+        const { eRC20Staking } = await loadFixture(deployERC20StakingFixture);
+        const reward = await eRC20Staking.calculateReward(31536000);
+        expect(reward).to.equal(1);
+    });
+
+    it("Should allow users to withdraw", async function () {
+        const { eRC20Staking, user1 } = await loadFixture(deployERC20StakingFixture);
+        await eRC20Staking.stakeToken(31536000); 
+        await eRC20Staking.withdraw();
+        expect(await eRC20Staking.stakingInfo(user1.address)).to.equal(0);
+    });
+  });
    
 
     

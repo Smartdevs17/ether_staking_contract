@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
-import "hardhat/console.sol";
 
 contract EtherStaking {
     struct StakingInfo {
@@ -29,7 +28,7 @@ contract EtherStaking {
         emit StakingStarted(msg.sender, msg.value, _stakingTime);
     }
 
-    function calculateReward(uint256 amount, uint256 _stakingTime) private pure returns (uint256) {
+    function calculateReward(uint256 amount, uint256 _stakingTime) public pure returns (uint256) {
         uint256 secondsInAYear = 31536000; 
         uint256 reward = amount * _stakingTime / secondsInAYear;
         return reward;
@@ -39,6 +38,7 @@ contract EtherStaking {
         require(msg.sender != address(0), "Invalid address");
         require(stakingInfo[msg.sender].balance > 0, "No Ether to withdraw");
         require(block.timestamp >= stakingInfo[msg.sender].time, "Staking time has not elapsed");
+        require(stakingInfo[msg.sender].balance > 0, "User has not staked any Ether");
         uint256 totalAmount = stakingInfo[msg.sender].balance + stakingInfo[msg.sender].reward;
         stakingInfo[msg.sender].balance = 0;
         stakingInfo[msg.sender].time = 0;
