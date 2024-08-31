@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.24;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "hardhat/console.sol";
 
 contract ERC20Staking {
     struct StakingInfo {
@@ -24,18 +23,16 @@ contract ERC20Staking {
 
     function stakeToken(uint256 _stakingTime, uint256 _amount) public {
         uint256 rewardBalance = token.balanceOf(address(this));
+
         require(msg.sender != address(0), "Cannot stake from address 0");
         require(_stakingTime > 0, "Staking time must be greater than zero");
         require(_amount > 0, "Amount must be greater than zero");
-        uint256 reward = calculateReward(_stakingTime, _amount);
-        // Log the current reward balance and the reward amount
-        // console.log("Current reward balance:", rewardBalance);
-        // console.log("Reward amount:", reward);
-        // console.log("Staking amount:", _amount);
-
-        require(rewardBalance >= reward, "Insufficient reward balance");
-        rewardBalance -= reward;
         require(_amount <= token.balanceOf(msg.sender), "Amount cannot be greater than the user's balance");
+
+        uint256 reward = calculateReward(_stakingTime, _amount);
+        require(rewardBalance >= reward, "Insufficient reward balance");
+
+        rewardBalance -= reward;
         token.transferFrom(msg.sender, address(this), _amount);
         stakingInfo[msg.sender] = StakingInfo(_amount, block.timestamp + _stakingTime, reward);
 
@@ -52,10 +49,12 @@ contract ERC20Staking {
         require(msg.sender != address(0), "Invalid address");
         require(stakingInfo[msg.sender].balance > 0, "No tokens to withdraw");
         require(block.timestamp >= stakingInfo[msg.sender].time, "Staking time has not elapsed");
+
         uint256 totalAmount = stakingInfo[msg.sender].balance + stakingInfo[msg.sender].reward;
         stakingInfo[msg.sender].balance = 0;
         stakingInfo[msg.sender].time = 0;
         stakingInfo[msg.sender].reward = 0;
+        
         token.transfer(msg.sender, totalAmount);
         
         emit RewardsWithdrawn(msg.sender, totalAmount, block.timestamp);

@@ -20,8 +20,10 @@ contract EtherStaking {
 
     function stakeEther(uint256 _stakingTime) public payable {
         require(msg.value > 0, "Amount must be greater than zero");
+
         uint256 reward = calculateReward(msg.value, _stakingTime);
         require(rewardBalance >= reward, "Insufficient reward balance");
+        
         rewardBalance -= reward;
         stakingInfo[msg.sender] = StakingInfo(msg.value, block.timestamp + _stakingTime, reward);
 
@@ -39,12 +41,15 @@ contract EtherStaking {
         require(stakingInfo[msg.sender].balance > 0, "No Ether to withdraw");
         require(block.timestamp >= stakingInfo[msg.sender].time, "Staking time has not elapsed");
         require(stakingInfo[msg.sender].balance > 0, "User has not staked any Ether");
+
         uint256 totalAmount = stakingInfo[msg.sender].balance + stakingInfo[msg.sender].reward;
         stakingInfo[msg.sender].balance = 0;
         stakingInfo[msg.sender].time = 0;
         stakingInfo[msg.sender].reward = 0;
+
         (bool success, ) = payable(msg.sender).call{value: totalAmount}("");
         require(success, "Failed to send Ether");
+
         emit RewardsWithdrawn(msg.sender, totalAmount, block.timestamp);
     }
 }
