@@ -1,26 +1,40 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-require("dotenv").config('.env');
-import "@typechain/hardhat";
+import * as dotenv from "dotenv";
+dotenv.config();
 
+const ALCHEMY_API_KEY = process.env.ALCHEMY_API_KEY;
 const config: HardhatUserConfig = {
-  solidity: {
-    compilers: [
-      { version: "0.8.24" },
-    ],
-  },
+  solidity: "0.8.24",
   networks: {
-    sepolia: {
-      url: `https://eth-sepolia.g.alchemy.com/v2/${process.env.ALCHEMY_API_KEY ?? ''}`,
+    hardhat: {
+      forking: {
+        url: `https://eth-mainnet.alchemyapi.io/v2/${ALCHEMY_API_KEY}`, 
+      }
+    },
+    // for testnet
+    "lisk-sepolia": {
+      url: process.env.LISK_RPC_URL!,
       accounts: [process.env.PRIVATE_KEY!],
     },
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY ?? '',
+    apiKey: {
+      "lisk-sepolia": "123",
+    },
+    customChains: [
+      {
+        network: "lisk-sepolia",
+        chainId: 4202,
+        urls: {
+          apiURL: "https://sepolia-blockscout.lisk.com/api",
+          browserURL: "https://sepolia-blockscout.lisk.com/",
+        },
+      },
+    ],
   },
-  typechain: {
-    outDir: "typechain-types",
-    target: "ethers-v6",
+  sourcify: {
+    enabled: false,
   },
 };
 
